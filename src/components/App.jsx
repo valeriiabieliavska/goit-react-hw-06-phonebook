@@ -1,65 +1,72 @@
-import { useState, useEffect} from 'react';
+import { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import ContactList from './ContactList/ContactList';
 import Form from './Form/Form';
 import Filter from './Filter/Filter';
-
+import { setFilter, addContact, deleteContact } from '../redux/contactsSlice';
 import css from './App.module.css';
 
-
-const INITIAL_CONTACTS = [
-  { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-  { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-  { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-  { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-];
-
 export const App = () => {
-  const [contacts, setContacts] = useState(() => JSON.parse(localStorage.getItem('contacts')) || INITIAL_CONTACTS);
-  
-  const [filter, setFilter] = useState('');
+  const contacts = useSelector(state => state.contacts.contacts);
+  const filter = useSelector(state => state.contacts.filter);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const savedContacts = JSON.parse(localStorage.getItem('contacts'));
+    if (savedContacts) {
+      dispatch(addContact(savedContacts));
+    }
+  }, [dispatch]);
 
   useEffect(() => {
     localStorage.setItem('contacts', JSON.stringify(contacts));
   }, [contacts]);
 
-  const addContact = 
-    contact => {
-      contacts.find(e => e.name.toLowerCase() === contact.name.toLowerCase())
-        ? alert(`${contact.name} is already in contacts`)
-        : setContacts(prevContacts => [contact, ...prevContacts]);
+  const handleAddContact = (name, number) => {
+    const newContact = { id: new Date().getTime().toString(), name, number };
+    const existingContact = contacts.find(
+      contact => contact.name.toLowerCase() === newContact.name.toLowerCase()
+    );
+    if (existingContact) {
+      alert(`${newContact.name} is already in contacts`);
+    } else {
+      dispatch(addContact(newContact));
     }
-
-  const handleFilter = value => {
-    setFilter(value);
   };
 
-  const getFilteredContacts = () => {
-    return contacts.filter(contact =>
-      contact.name.toLowerCase().includes(filter.toLowerCase())
-    );
-  }
+  const handleDeleteContact = id => {
+    dispatch(deleteContact(id));
+  };
 
-  const handleDelete = 
-    id => {
-      setContacts(prevContacts =>
-        prevContacts.filter(contact => contact.id !== id)
-      );
-    }
+  const handleFilterChange = event => {
+    dispatch(setFilter(event.target.value));
+  };
 
-  const filteredContacts = getFilteredContacts();
+  const filteredContacts = contacts.filter(
+    contact =>
+      contact.name && contact.name.toLowerCase().includes(filter.toLowerCase())
+  );
 
   return (
     <>
       <h1 className={css.title}>Phonebook</h1>
-      <Form onSubmit={addContact} />
+      <Form onSubmit={handleAddContact} />
       <h2 className={css.title}>Contacts</h2>
-      <Filter value={filter} setFilter={handleFilter} />
+      <Filter value={filter} setFilter={handleFilterChange} />
       {contacts.length === 0 ? (
         <p className={css.message}>There are no contacts in the Phonebook</p>
       ) : (
-        <ContactList contacts={filteredContacts} onClick={handleDelete} />
+        <ContactList
+          contacts={filteredContacts}
+          onClick={handleDeleteContact}
+        />
       )}
     </>
   );
-}
+};
 
+// const handleAddContact = (name, number) => {
+//   const newContact = { id: new Date().getTime().toString(), name, number };
+//   dispatch(addContact(newContact));
+// };

@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { nanoid } from 'nanoid';
 import PropTypes from 'prop-types';
+import { useDispatch } from 'react-redux';
+import { addContact } from '../../redux/contactsSlice';
 import css from './Form.module.css';
 
-const Form = ({ onSubmit }) => {
+const Form = () => {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
+
+  const dispatch = useDispatch();
 
   const handleChange = event => {
     const { name, value } = event.currentTarget;
@@ -16,10 +20,10 @@ const Form = ({ onSubmit }) => {
     }
   };
 
-  const addContact = event => {
+  const handleAddContact = event => {
     event.preventDefault();
     const id = nanoid();
-    onSubmit({ name, number }, id);
+    dispatch(addContact({ id, name, number }));
     reset();
   };
 
@@ -29,7 +33,7 @@ const Form = ({ onSubmit }) => {
   };
 
   return (
-    <form onSubmit={addContact} className={css.contactsForm}>
+    <form onSubmit={handleAddContact} className={css.contactsForm}>
       <label className={css.inputName}>
         Name
         <input
@@ -61,11 +65,45 @@ const Form = ({ onSubmit }) => {
       </button>
     </form>
   );
-}
+};
 
 Form.propTypes = {
   onSubmit: PropTypes.func.isRequired,
 };
 
-
 export default Form;
+
+// import { useState } from 'react';
+// import { nanoid } from 'nanoid';
+// import PropTypes from 'prop-types';
+// import { useDispatch } from 'react-redux';
+// import { addContact } from '../../redux/contactsSlice';
+// import css from './Form.module.css';
+
+// const Form = ({ onSubmit }) => {
+//   const [name, setName] = useState('');
+//   const [number, setNumber] = useState('');
+
+//   const dispatch = useDispatch();
+
+//   const handleChange = event => {
+//     const { name, value } = event.currentTarget;
+//     if (name === 'name') {
+//       setName(value);
+//     } else if (name === 'number') {
+//       setNumber(value);
+//     }
+//   };
+
+//   const handleAddContact = event => {
+//     event.preventDefault();
+//     const id = nanoid();
+//     dispatch(addContact({ id, name, number }));
+//     onSubmit(name, number);
+//     reset();
+//   };
+
+//   const reset = () => {
+//     setName('');
+//     setNumber('');
+//   };
